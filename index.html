@@ -200,6 +200,15 @@
             background: #FF5252;
         }
 
+        .version {
+            position: fixed;
+            bottom: 10px;
+            right: 10px;
+            color: #666;
+            font-size: 0.8em;
+            opacity: 0.7;
+        }
+
         @media (max-width: 480px) {
             .shape, .target-shape {
                 width: 60px;
@@ -246,6 +255,8 @@
             You matched all the shapes!
         </div>
     </div>
+
+    <div class="version">Ver 3</div>
 
     <script>
         let draggedElement = null;
