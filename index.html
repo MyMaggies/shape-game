@@ -1,0 +1,448 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Shape Matching Game</title>
+    <style>
+        body {
+            font-family: 'Comic Sans MS', cursive, sans-serif;
+            background: linear-gradient(135deg, #87CEEB, #98FB98);
+            margin: 0;
+            padding: 20px;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            user-select: none;
+            touch-action: manipulation;
+        }
+
+        .game-title {
+            color: #2E8B57;
+            font-size: 2.5em;
+            margin-bottom: 20px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+        }
+
+        .game-container {
+            width: 90%;
+            max-width: 600px;
+            height: 70vh;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .target-area {
+            height: 50%;
+            background: #f0f8ff;
+            border-bottom: 3px dashed #4682b4;
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+
+        .source-area {
+            height: 50%;
+            background: #fffacd;
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+
+        .shape {
+            width: 80px;
+            height: 80px;
+            cursor: grab;
+            transition: all 0.3s ease;
+            position: relative;
+            z-index: 10;
+        }
+
+        .shape:active {
+            cursor: grabbing;
+            transform: scale(1.1);
+        }
+
+        .shape.dragging {
+            z-index: 1000;
+            transform: scale(1.1);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.3);
+        }
+
+        .target-shape {
+            width: 80px;
+            height: 80px;
+            background: #d3d3d3;
+            border: 3px dashed #999;
+            position: relative;
+            transition: all 0.3s ease;
+        }
+
+        .target-shape.highlight {
+            background: #90EE90;
+            border-color: #32CD32;
+            transform: scale(1.1);
+        }
+
+        .target-shape.matched {
+            background: #98FB98;
+            border: 3px solid #32CD32;
+        }
+
+        /* Shape styles */
+        .circle {
+            border-radius: 50%;
+        }
+
+        .square {
+            border-radius: 8px;
+        }
+
+        .triangle {
+            width: 0;
+            height: 0;
+            border-left: 40px solid transparent;
+            border-right: 40px solid transparent;
+            border-bottom: 70px solid;
+            background: transparent !important;
+        }
+
+        .triangle.target-shape {
+            border-left: 40px solid transparent;
+            border-right: 40px solid transparent;
+            border-bottom: 70px solid #d3d3d3;
+            background: transparent !important;
+            border-top: none;
+            border-radius: 0;
+        }
+
+        .triangle.matched {
+            border-bottom-color: #98FB98 !important;
+        }
+
+        .triangle.highlight {
+            border-bottom-color: #90EE90 !important;
+        }
+
+        .star {
+            position: relative;
+            width: 80px;
+            height: 80px;
+            background: transparent;
+        }
+
+        .star::before {
+            content: "★";
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 70px;
+            color: inherit;
+        }
+
+        /* Color scheme for draggable shapes */
+        .red { background: #FF6B6B; }
+        .blue { background: #4ECDC4; }
+        .yellow { background: #FFE66D; }
+        .green { background: #95E1D3; }
+
+        .red.triangle { border-bottom-color: #FF6B6B; }
+        .blue.triangle { border-bottom-color: #4ECDC4; }
+        .yellow.triangle { border-bottom-color: #FFE66D; }
+        .green.triangle { border-bottom-color: #95E1D3; }
+
+        .red.star::before { color: #FF6B6B; }
+        .blue.star::before { color: #4ECDC4; }
+        .yellow.star::before { color: #FFE66D; }
+        .green.star::before { color: #95E1D3; }
+
+        .success-message {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: #FFD700;
+            color: #2E8B57;
+            padding: 30px;
+            border-radius: 20px;
+            font-size: 2em;
+            font-weight: bold;
+            text-align: center;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            z-index: 2000;
+            display: none;
+        }
+
+        .reset-button {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: #FF6B6B;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 15px;
+            font-size: 1.2em;
+            cursor: pointer;
+            transition: background 0.3s ease;
+        }
+
+        .reset-button:hover {
+            background: #FF5252;
+        }
+
+        @media (max-width: 480px) {
+            .shape, .target-shape {
+                width: 60px;
+                height: 60px;
+            }
+            .triangle {
+                border-left: 30px solid transparent;
+                border-right: 30px solid transparent;
+                border-bottom: 50px solid;
+            }
+            .triangle.target-shape {
+                border-left: 30px solid transparent;
+                border-right: 30px solid transparent;
+                border-bottom: 50px solid #d3d3d3;
+            }
+            .star::before {
+                font-size: 50px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <h1 class="game-title">Match the Shapes!</h1>
+    
+    <div class="game-container">
+        <button class="reset-button" onclick="resetGame()">Reset</button>
+        
+        <div class="target-area">
+            <div class="target-shape circle" data-shape="circle"></div>
+            <div class="target-shape square" data-shape="square"></div>
+            <div class="target-shape triangle" data-shape="triangle"></div>
+            <div class="target-shape star" data-shape="star"></div>
+        </div>
+        
+        <div class="source-area">
+            <div class="shape triangle green" data-shape="triangle" draggable="true"></div>
+            <div class="shape circle red" data-shape="circle" draggable="true"></div>
+            <div class="shape star yellow" data-shape="star" draggable="true"></div>
+            <div class="shape square blue" data-shape="square" draggable="true"></div>
+        </div>
+        
+        <div class="success-message">
+            🎉 Great Job! 🎉<br>
+            You matched all the shapes!
+        </div>
+    </div>
+
+    <script>
+        let draggedElement = null;
+        let matches = 0;
+        let isDragging = false;
+        let startX, startY;
+        let currentX, currentY;
+        let initialX, initialY;
+
+        function initGame() {
+            const draggableShapes = document.querySelectorAll('.shape[draggable="true"]');
+            const targetShapes = document.querySelectorAll('.target-shape');
+            
+            // Desktop drag and drop
+            draggableShapes.forEach(shape => {
+                shape.addEventListener('dragstart', handleDragStart);
+                shape.addEventListener('dragend', handleDragEnd);
+            });
+            
+            targetShapes.forEach(target => {
+                target.addEventListener('dragover', handleDragOver);
+                target.addEventListener('drop', handleDrop);
+                target.addEventListener('dragenter', handleDragEnter);
+                target.addEventListener('dragleave', handleDragLeave);
+            });
+
+            // Mobile touch events
+            draggableShapes.forEach(shape => {
+                shape.addEventListener('touchstart', handleTouchStart, { passive: false });
+                shape.addEventListener('touchmove', handleTouchMove, { passive: false });
+                shape.addEventListener('touchend', handleTouchEnd, { passive: false });
+            });
+        }
+
+        // Desktop drag handlers
+        function handleDragStart(e) {
+            draggedElement = e.target;
+            e.target.classList.add('dragging');
+            e.dataTransfer.effectAllowed = 'move';
+        }
+
+        function handleDragEnd(e) {
+            e.target.classList.remove('dragging');
+            draggedElement = null;
+        }
+
+        function handleDragOver(e) {
+            e.preventDefault();
+            e.dataTransfer.dropEffect = 'move';
+        }
+
+        function handleDragEnter(e) {
+            e.preventDefault();
+            if (draggedElement && draggedElement.dataset.shape === e.target.dataset.shape) {
+                e.target.classList.add('highlight');
+            }
+        }
+
+        function handleDragLeave(e) {
+            e.target.classList.remove('highlight');
+        }
+
+        function handleDrop(e) {
+            e.preventDefault();
+            e.target.classList.remove('highlight');
+            
+            if (draggedElement && draggedElement.dataset.shape === e.target.dataset.shape) {
+                matchShape(draggedElement, e.target);
+            }
+        }
+
+        // Mobile touch handlers
+        function handleTouchStart(e) {
+            e.preventDefault();
+            const touch = e.touches[0];
+            draggedElement = e.target;
+            
+            const rect = draggedElement.getBoundingClientRect();
+            startX = touch.clientX - rect.left;
+            startY = touch.clientY - rect.top;
+            initialX = rect.left;
+            initialY = rect.top;
+            
+            draggedElement.classList.add('dragging');
+            draggedElement.style.position = 'fixed';
+            draggedElement.style.zIndex = '1000';
+            isDragging = true;
+        }
+
+        function handleTouchMove(e) {
+            if (!isDragging || !draggedElement) return;
+            e.preventDefault();
+            
+            const touch = e.touches[0];
+            currentX = touch.clientX - startX;
+            currentY = touch.clientY - startY;
+            
+            draggedElement.style.left = currentX + 'px';
+            draggedElement.style.top = currentY + 'px';
+            
+            // Check for hover over target
+            const elementBelow = document.elementFromPoint(touch.clientX, touch.clientY);
+            const targetShapes = document.querySelectorAll('.target-shape');
+            
+            targetShapes.forEach(target => target.classList.remove('highlight'));
+            
+            if (elementBelow && elementBelow.classList.contains('target-shape')) {
+                if (draggedElement.dataset.shape === elementBelow.dataset.shape) {
+                    elementBelow.classList.add('highlight');
+                }
+            }
+        }
+
+        function handleTouchEnd(e) {
+            if (!isDragging || !draggedElement) return;
+            e.preventDefault();
+            
+            const touch = e.changedTouches[0];
+            const elementBelow = document.elementFromPoint(touch.clientX, touch.clientY);
+            
+            // Reset position and styles
+            draggedElement.style.position = 'relative';
+            draggedElement.style.left = '';
+            draggedElement.style.top = '';
+            draggedElement.style.zIndex = '';
+            draggedElement.classList.remove('dragging');
+            
+            // Remove all highlights
+            const targetShapes = document.querySelectorAll('.target-shape');
+            targetShapes.forEach(target => target.classList.remove('highlight'));
+            
+            // Check for match
+            if (elementBelow && elementBelow.classList.contains('target-shape')) {
+                if (draggedElement.dataset.shape === elementBelow.dataset.shape) {
+                    matchShape(draggedElement, elementBelow);
+                }
+            }
+            
+            isDragging = false;
+            draggedElement = null;
+        }
+
+        function matchShape(draggedShape, targetShape) {
+            // Hide the dragged shape
+            draggedShape.style.display = 'none';
+            
+            // Mark target as matched
+            targetShape.classList.add('matched');
+            
+            // Create visual feedback
+            targetShape.style.transform = 'scale(1.2)';
+            setTimeout(() => {
+                targetShape.style.transform = 'scale(1)';
+            }, 300);
+            
+            matches++;
+            
+            // Check if all shapes are matched
+            if (matches === 4) {
+                setTimeout(() => {
+                    document.querySelector('.success-message').style.display = 'block';
+                }, 500);
+            }
+        }
+
+        function resetGame() {
+            // Reset matches
+            matches = 0;
+            
+            // Show all draggable shapes
+            const draggableShapes = document.querySelectorAll('.shape[draggable="true"]');
+            draggableShapes.forEach(shape => {
+                shape.style.display = 'block';
+                shape.style.position = 'relative';
+                shape.style.left = '';
+                shape.style.top = '';
+                shape.style.zIndex = '';
+                shape.classList.remove('dragging');
+            });
+            
+            // Reset target shapes
+            const targetShapes = document.querySelectorAll('.target-shape');
+            targetShapes.forEach(target => {
+                target.classList.remove('matched', 'highlight');
+                target.style.transform = '';
+            });
+            
+            // Hide success message
+            document.querySelector('.success-message').style.display = 'none';
+            
+            // Reset dragging state
+            isDragging = false;
+            draggedElement = null;
+        }
+
+        // Initialize the game when the page loads
+        document.addEventListener('DOMContentLoaded', initGame);
+    </script>
+</body>
+</html>
