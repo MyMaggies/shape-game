@@ -346,10 +346,12 @@
             draggedElement.style.left = currentX + 'px';
             draggedElement.style.top = currentY + 'px';
             
-            // Check for hover over target
+            // Check for hover over target - temporarily hide dragged element
+            draggedElement.style.visibility = 'hidden';
             const elementBelow = document.elementFromPoint(touch.clientX, touch.clientY);
-            const targetShapes = document.querySelectorAll('.target-shape');
+            draggedElement.style.visibility = 'visible';
             
+            const targetShapes = document.querySelectorAll('.target-shape');
             targetShapes.forEach(target => target.classList.remove('highlight'));
             
             if (elementBelow && elementBelow.classList.contains('target-shape')) {
@@ -364,7 +366,11 @@
             e.preventDefault();
             
             const touch = e.changedTouches[0];
+            
+            // Temporarily hide dragged element to get element below
+            draggedElement.style.visibility = 'hidden';
             const elementBelow = document.elementFromPoint(touch.clientX, touch.clientY);
+            draggedElement.style.visibility = 'visible';
             
             // Reset position and styles
             draggedElement.style.position = 'relative';
@@ -377,10 +383,18 @@
             const targetShapes = document.querySelectorAll('.target-shape');
             targetShapes.forEach(target => target.classList.remove('highlight'));
             
-            // Check for match
-            if (elementBelow && elementBelow.classList.contains('target-shape')) {
-                if (draggedElement.dataset.shape === elementBelow.dataset.shape) {
-                    matchShape(draggedElement, elementBelow);
+            // Check for match with better detection
+            if (elementBelow) {
+                // Check if it's a target shape or if it's inside a target shape
+                let targetElement = elementBelow;
+                if (!elementBelow.classList.contains('target-shape')) {
+                    targetElement = elementBelow.closest('.target-shape');
+                }
+                
+                if (targetElement && targetElement.classList.contains('target-shape')) {
+                    if (draggedElement.dataset.shape === targetElement.dataset.shape) {
+                        matchShape(draggedElement, targetElement);
+                    }
                 }
             }
             
