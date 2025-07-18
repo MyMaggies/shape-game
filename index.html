@@ -1,522 +1,421 @@
-.diamond {
-                width: 42px;
-                height: 42px;
-            }            .diamond::before {
-                width: 42px;
-                height: 42px;
-            }<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Shape Matching Game</title>
+    <title>Match the Shapes!</title>
     <style>
-        body {
-            font-family: 'Comic Sans MS', cursive, sans-serif;
-            background: linear-gradient(135deg, #87CEEB, #98FB98);
+        * {
             margin: 0;
-            padding: 20px;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(135deg, #87CEEB 0%, #98FB98 100%);
             min-height: 100vh;
             display: flex;
             flex-direction: column;
             align-items: center;
-            user-select: none;
-            touch-action: manipulation;
+            padding: 20px;
         }
-
-        .game-title {
-            color: #2E8B57;
+        
+        .title {
+            color: #333;
             font-size: 2.5em;
-            margin-bottom: 20px;
-            text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+            font-weight: bold;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+            margin-bottom: 10px;
+            text-align: center;
         }
-
+        
+        .instructions {
+            color: #555;
+            font-size: 1.3em;
+            margin-bottom: 30px;
+            text-align: center;
+            font-weight: 500;
+        }
+        
         .game-container {
-            width: 90%;
-            max-width: 600px;
-            height: 70vh;
             background: white;
             border-radius: 20px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
-            position: relative;
-            overflow: visible;
-            margin-bottom: 80px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.2);
+            padding: 30px;
+            width: 100%;
+            max-width: 600px;
+            margin-bottom: 20px;
         }
-
-        .target-area {
-            height: 50%;
-            background: #f0f8ff;
-            border-bottom: 3px dashed #4682b4;
+        
+        .targets-area {
+            background: #E6F3FF;
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 20px;
             display: flex;
             justify-content: space-around;
             align-items: center;
-            padding: 20px;
-            box-sizing: border-box;
+            flex-wrap: wrap;
+            min-height: 120px;
         }
-
-        .source-area {
-            height: 50%;
-            background: #fffacd;
+        
+        .shapes-area {
+            background: #FFF8DC;
+            border-radius: 15px;
+            padding: 20px;
             display: flex;
             justify-content: space-around;
             align-items: center;
-            padding: 20px;
-            box-sizing: border-box;
+            flex-wrap: wrap;
+            min-height: 120px;
         }
-
-        .shape {
-            width: 80px;
-            height: 80px;
-            cursor: grab;
-            transition: all 0.3s ease;
-            position: relative;
-            z-index: 10;
-        }
-
-        .shape:active {
-            cursor: grabbing;
-            transform: scale(1.1);
-        }
-
-        .shape.dragging {
-            z-index: 1000;
-            transform: scale(1.1);
-            box-shadow: 0 10px 20px rgba(0,0,0,0.3);
-        }
-
+        
         .target-shape {
             width: 80px;
             height: 80px;
-            background: #d3d3d3;
-            position: relative;
+            background: #999;
+            margin: 10px;
             transition: all 0.3s ease;
+            border-radius: 0;
         }
-
-        .target-shape.highlight {
-            background: #90EE90;
-            border-color: #32CD32;
-            transform: scale(1.1);
-        }
-
-        .target-shape.matched {
-            background: #98FB98;
-        }
-
-        /* Shape styles */
-        .circle {
+        
+        .target-shape.circle {
             border-radius: 50%;
         }
-
-        .diamond {
-            width: 56px;
-            height: 56px;
-            background: #d3d3d3;
+        
+        .target-shape.diamond {
+            transform: rotate(45deg);
+        }
+        
+        .target-shape.triangle {
+            width: 0;
+            height: 0;
+            background: transparent;
+            border-left: 40px solid transparent;
+            border-right: 40px solid transparent;
+            border-bottom: 80px solid #999;
+        }
+        
+        .target-shape.highlight {
+            background: #90EE90 !important;
+            transform: scale(1.1);
+        }
+        
+        .target-shape.diamond.highlight {
+            transform: rotate(45deg) scale(1.1);
+        }
+        
+        .target-shape.triangle.highlight {
+            border-bottom-color: #90EE90 !important;
+            background: transparent !important;
+        }
+        
+        .target-shape.matched {
+            background: #90EE90 !important;
+        }
+        
+        .target-shape.triangle.matched {
+            border-bottom-color: #90EE90 !important;
+        }
+        
+        .draggable-shape {
+            width: 80px;
+            height: 80px;
+            margin: 10px;
+            cursor: grab;
+            transition: all 0.3s ease;
+            user-select: none;
+            touch-action: none;
             position: relative;
+            z-index: 10;
         }
-
-        .diamond::before {
-            content: "";
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: inherit;
+        
+        .draggable-shape:hover {
+            transform: scale(1.1);
+        }
+        
+        .draggable-shape.dragging {
+            cursor: grabbing;
+            transform: scale(1.2);
+            z-index: 1000;
+            opacity: 0.8;
+        }
+        
+        .draggable-shape.circle {
+            background: #FF4444;
+            border-radius: 50%;
+        }
+        
+        .draggable-shape.diamond {
+            background: #FF69B4;
             transform: rotate(45deg);
         }
-
-        .diamond.dragging::before {
-            transform: rotate(45deg);
-        }
-
-        /* Target diamond should be grey */
-        .target-shape.diamond::before {
-            background: #d3d3d3;
-        }
-
-        /* Draggable diamonds inherit their color class */
-        .red.diamond::before { background: #FF4444; }
-        .pink.diamond::before { background: #FF69B4; }
-        .blue.diamond::before { background: #4169E1; }
-        .green.diamond::before { background: #32CD32; }
-
-        .square {
-            border-radius: 8px;
-        }
-
-        .sharp-square {
-            border-radius: 0px !important;
-        }
-
-        .triangle {
+        
+        .draggable-shape.triangle {
             width: 0;
             height: 0;
             border-left: 40px solid transparent;
             border-right: 40px solid transparent;
-            border-bottom: 70px solid;
-            background: transparent !important;
+            border-bottom: 80px solid #32CD32;
         }
-
-        .triangle.target-shape {
-            border-left: 40px solid transparent;
-            border-right: 40px solid transparent;
-            border-bottom: 70px solid #d3d3d3;
-            background: transparent !important;
-            border-top: none;
-            border-radius: 0;
+        
+        .draggable-shape.square {
+            background: #4169E1;
         }
-
-        .triangle.matched {
-            border-bottom-color: #98FB98 !important;
+        
+        .reset-button {
+            background: linear-gradient(135deg, #FF6B6B, #FF8E8E);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            font-size: 1.2em;
+            font-weight: bold;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(255,107,107,0.4);
         }
-
-        .triangle.highlight {
-            border-bottom-color: #90EE90 !important;
+        
+        .reset-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(255,107,107,0.6);
         }
-
-        .star {
-            position: relative;
-            width: 80px;
-            height: 80px;
-            background: transparent;
-        }
-
-        .star::before {
-            content: "★";
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            font-size: 70px;
-            color: inherit;
-        }
-
-        /* Color scheme for draggable shapes */
-        .red { background: #FF4444; }
-        .pink { background: #FF69B4; }
-        .blue { background: #4169E1; }
-        .green { background: #32CD32; }
-
-        .red.triangle { border-bottom-color: #FF4444; }
-        .pink.triangle { border-bottom-color: #FF69B4; }
-        .blue.triangle { border-bottom-color: #4169E1; }
-        .green.triangle { border-bottom-color: #32CD32; }
-
+        
         .success-message {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            background: #FFD700;
             color: #2E8B57;
-            padding: 30px;
-            border-radius: 20px;
             font-size: 2em;
             font-weight: bold;
             text-align: center;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
-            z-index: 2000;
-            display: none;
+            margin-top: 20px;
+            opacity: 0;
+            transition: opacity 0.5s ease;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.3);
         }
-
-        .reset-button {
-            position: absolute;
-            bottom: -50px;
-            left: 50%;
-            transform: translateX(-50%);
-            background: #FF6B6B;
-            color: white;
-            border: none;
-            padding: 8px 15px;
-            border-radius: 15px;
-            font-size: 1.2em;
-            cursor: pointer;
-            transition: background 0.3s ease;
+        
+        .success-message.show {
+            opacity: 1;
         }
-
-        .reset-button:hover {
-            background: #FF5252;
-        }
-
+        
         .version {
             position: fixed;
             bottom: 10px;
-            right: 10px;
+            right: 15px;
             color: #666;
-            font-size: 0.8em;
-            opacity: 0.7;
+            font-size: 0.9em;
+            font-weight: 500;
         }
-
-        @media (max-width: 480px) {
-            .shape, .target-shape {
+        
+        @media (max-width: 768px) {
+            .title {
+                font-size: 2em;
+            }
+            
+            .instructions {
+                font-size: 1.1em;
+            }
+            
+            .target-shape, .draggable-shape {
                 width: 60px;
                 height: 60px;
+                margin: 5px;
             }
-            .triangle {
+            
+            .target-shape.triangle {
                 border-left: 30px solid transparent;
                 border-right: 30px solid transparent;
-                border-bottom: 50px solid;
+                border-bottom: 60px solid #999;
             }
-            .triangle.target-shape {
+            
+            .draggable-shape.triangle {
                 border-left: 30px solid transparent;
                 border-right: 30px solid transparent;
-                border-bottom: 50px solid #d3d3d3;
+                border-bottom: 60px solid #32CD32;
+            }
+            
+            .game-container {
+                padding: 20px;
             }
         }
     </style>
 </head>
 <body>
-    <h1 class="game-title">Match the Shapes!</h1>
-    <p style="color: #2E8B57; font-size: 1.2em; text-align: center; margin-bottom: 20px; margin-top: -10px; font-weight: bold;">Drag each colored shape to match the grey shape</p>
+    <h1 class="title">Match the Shapes!</h1>
+    <p class="instructions">Drag each colored shape to match the grey shape</p>
     
     <div class="game-container">
-        <button class="reset-button" onclick="resetGame()">Reset</button>
-        
-        <div class="target-area">
+        <div class="targets-area">
             <div class="target-shape circle" data-shape="circle"></div>
             <div class="target-shape diamond" data-shape="diamond"></div>
             <div class="target-shape triangle" data-shape="triangle"></div>
-            <div class="target-shape square sharp-square" data-shape="square2"></div>
+            <div class="target-shape square" data-shape="square"></div>
         </div>
         
-        <div class="source-area">
-            <div class="shape triangle green" data-shape="triangle" draggable="true"></div>
-            <div class="shape circle red" data-shape="circle" draggable="true"></div>
-            <div class="shape diamond pink" data-shape="diamond" draggable="true"></div>
-            <div class="shape square sharp-square blue" data-shape="square2" draggable="true"></div>
-        </div>
-        
-        <div class="success-message">
-            🎉 Great Job! 🎉<br>
-            You matched all the shapes!
+        <div class="shapes-area">
+            <div class="draggable-shape square" data-shape="square"></div>
+            <div class="draggable-shape triangle" data-shape="triangle"></div>
+            <div class="draggable-shape circle" data-shape="circle"></div>
+            <div class="draggable-shape diamond" data-shape="diamond"></div>
         </div>
     </div>
-
-    <div class="version">Ver 22</div>
-
+    
+    <button class="reset-button" onclick="resetGame()">Reset Game</button>
+    
+    <div class="success-message" id="successMessage">🎉 Great Job! 🎉 You matched all the shapes!</div>
+    
+    <div class="version">Ver 24</div>
+    
     <script>
         let draggedElement = null;
-        let matches = 0;
-        let isDragging = false;
-        let startX, startY;
-        let currentX, currentY;
-        let initialX, initialY;
-
+        let offset = { x: 0, y: 0 };
+        let matchedShapes = new Set();
+        
+        // Initialize the game
         function initGame() {
-            const draggableShapes = document.querySelectorAll('.shape[draggable="true"]');
-            const targetShapes = document.querySelectorAll('.target-shape');
+            const draggableShapes = document.querySelectorAll('.draggable-shape');
+            const targets = document.querySelectorAll('.target-shape');
             
-            // Desktop drag and drop
+            // Add event listeners for mouse events
             draggableShapes.forEach(shape => {
-                shape.addEventListener('dragstart', handleDragStart);
-                shape.addEventListener('dragend', handleDragEnd);
+                shape.addEventListener('mousedown', handleStart);
+                shape.addEventListener('dragstart', e => e.preventDefault());
             });
             
-            targetShapes.forEach(target => {
-                target.addEventListener('dragover', handleDragOver);
-                target.addEventListener('drop', handleDrop);
-                target.addEventListener('dragenter', handleDragEnter);
-                target.addEventListener('dragleave', handleDragLeave);
-            });
-
-            // Mobile touch events
+            // Add event listeners for touch events
             draggableShapes.forEach(shape => {
-                shape.addEventListener('touchstart', handleTouchStart, { passive: false });
-                shape.addEventListener('touchmove', handleTouchMove, { passive: false });
-                shape.addEventListener('touchend', handleTouchEnd, { passive: false });
+                shape.addEventListener('touchstart', handleStart, { passive: false });
             });
-        }
-
-        // Desktop drag handlers
-        function handleDragStart(e) {
-            draggedElement = e.target;
-            e.target.classList.add('dragging');
-            e.dataTransfer.effectAllowed = 'move';
-        }
-
-        function handleDragEnd(e) {
-            e.target.classList.remove('dragging');
-            draggedElement = null;
-        }
-
-        function handleDragOver(e) {
-            e.preventDefault();
-            e.dataTransfer.dropEffect = 'move';
-        }
-
-        function handleDragEnter(e) {
-            e.preventDefault();
-            if (draggedElement && draggedElement.dataset.shape === e.target.dataset.shape) {
-                e.target.classList.add('highlight');
-            }
-        }
-
-        function handleDragLeave(e) {
-            e.target.classList.remove('highlight');
-        }
-
-        function handleDrop(e) {
-            e.preventDefault();
-            e.target.classList.remove('highlight');
             
-            if (draggedElement && draggedElement.dataset.shape === e.target.dataset.shape) {
-                matchShape(draggedElement, e.target);
-            }
+            // Add global event listeners
+            document.addEventListener('mousemove', handleMove);
+            document.addEventListener('mouseup', handleEnd);
+            document.addEventListener('touchmove', handleMove, { passive: false });
+            document.addEventListener('touchend', handleEnd);
         }
-
-        // Mobile touch handlers
-        function handleTouchStart(e) {
+        
+        function handleStart(e) {
             e.preventDefault();
-            const touch = e.touches[0];
-            draggedElement = e.target;
             
+            const clientX = e.type === 'mousedown' ? e.clientX : e.touches[0].clientX;
+            const clientY = e.type === 'mousedown' ? e.clientY : e.touches[0].clientY;
+            
+            draggedElement = e.target;
             const rect = draggedElement.getBoundingClientRect();
-            // Store offset from touch point to element center for smoother dragging
-            startX = touch.clientX - (rect.left + rect.width / 2);
-            startY = touch.clientY - (rect.top + rect.height / 2);
+            
+            offset.x = clientX - rect.left;
+            offset.y = clientY - rect.top;
             
             draggedElement.classList.add('dragging');
             draggedElement.style.position = 'fixed';
-            draggedElement.style.zIndex = '1000';
-            isDragging = true;
+            draggedElement.style.left = (clientX - offset.x) + 'px';
+            draggedElement.style.top = (clientY - offset.y) + 'px';
+            draggedElement.style.pointerEvents = 'none';
         }
-
-        function handleTouchMove(e) {
-            if (!isDragging || !draggedElement) return;
+        
+        function handleMove(e) {
+            if (!draggedElement) return;
+            
             e.preventDefault();
             
-            const touch = e.touches[0];
+            const clientX = e.type === 'mousemove' ? e.clientX : e.touches[0].clientX;
+            const clientY = e.type === 'mousemove' ? e.clientY : e.touches[0].clientY;
             
-            // Center the element on the finger position
-            const elementWidth = draggedElement.offsetWidth;
-            const elementHeight = draggedElement.offsetHeight;
+            draggedElement.style.left = (clientX - offset.x) + 'px';
+            draggedElement.style.top = (clientY - offset.y) + 'px';
             
-            currentX = touch.clientX - startX - (elementWidth / 2);
-            currentY = touch.clientY - startY - (elementHeight / 2);
-            
-            draggedElement.style.left = currentX + 'px';
-            draggedElement.style.top = currentY + 'px';
-            
-            // Check for collision with target shapes
-            const targetShapes = document.querySelectorAll('.target-shape');
-            targetShapes.forEach(target => target.classList.remove('highlight'));
-            
-            const draggedRect = draggedElement.getBoundingClientRect();
-            const draggedCenterX = draggedRect.left + draggedRect.width / 2;
-            const draggedCenterY = draggedRect.top + draggedRect.height / 2;
-            
-            targetShapes.forEach(target => {
-                const targetRect = target.getBoundingClientRect();
-                if (draggedCenterX >= targetRect.left && 
-                    draggedCenterX <= targetRect.right &&
-                    draggedCenterY >= targetRect.top && 
-                    draggedCenterY <= targetRect.bottom) {
-                    if (draggedElement.dataset.shape === target.dataset.shape) {
+            // Check for hover over targets
+            const targets = document.querySelectorAll('.target-shape');
+            targets.forEach(target => {
+                target.classList.remove('highlight');
+                
+                if (!matchedShapes.has(target.dataset.shape)) {
+                    const rect = target.getBoundingClientRect();
+                    const distance = Math.sqrt(
+                        Math.pow(clientX - (rect.left + rect.width / 2), 2) + 
+                        Math.pow(clientY - (rect.top + rect.height / 2), 2)
+                    );
+                    
+                    if (distance < 50 && target.dataset.shape === draggedElement.dataset.shape) {
                         target.classList.add('highlight');
                     }
                 }
             });
         }
-
-        function handleTouchEnd(e) {
-            if (!isDragging || !draggedElement) return;
-            e.preventDefault();
+        
+        function handleEnd(e) {
+            if (!draggedElement) return;
             
-            const touch = e.changedTouches[0];
+            const clientX = e.type === 'mouseup' ? e.clientX : e.changedTouches[0].clientX;
+            const clientY = e.type === 'mouseup' ? e.clientY : e.changedTouches[0].clientY;
             
-            // Use collision detection instead of elementFromPoint
-            const draggedRect = draggedElement.getBoundingClientRect();
-            const draggedCenterX = draggedRect.left + draggedRect.width / 2;
-            const draggedCenterY = draggedRect.top + draggedRect.height / 2;
+            // Check if dropped on correct target
+            const targets = document.querySelectorAll('.target-shape');
+            let matched = false;
             
-            let matchedTarget = null;
-            const targetShapes = document.querySelectorAll('.target-shape');
-            
-            targetShapes.forEach(target => {
-                const targetRect = target.getBoundingClientRect();
-                if (draggedCenterX >= targetRect.left && 
-                    draggedCenterX <= targetRect.right &&
-                    draggedCenterY >= targetRect.top && 
-                    draggedCenterY <= targetRect.bottom) {
-                    if (draggedElement.dataset.shape === target.dataset.shape) {
-                        matchedTarget = target;
+            targets.forEach(target => {
+                target.classList.remove('highlight');
+                
+                if (!matchedShapes.has(target.dataset.shape)) {
+                    const rect = target.getBoundingClientRect();
+                    const distance = Math.sqrt(
+                        Math.pow(clientX - (rect.left + rect.width / 2), 2) + 
+                        Math.pow(clientY - (rect.top + rect.height / 2), 2)
+                    );
+                    
+                    if (distance < 50 && target.dataset.shape === draggedElement.dataset.shape) {
+                        // Match found!
+                        target.classList.add('matched');
+                        draggedElement.style.display = 'none';
+                        matchedShapes.add(target.dataset.shape);
+                        matched = true;
+                        
+                        // Check if all shapes are matched
+                        if (matchedShapes.size === 4) {
+                            setTimeout(() => {
+                                document.getElementById('successMessage').classList.add('show');
+                            }, 300);
+                        }
                     }
                 }
             });
             
-            // Reset position and styles
-            draggedElement.style.position = 'relative';
-            draggedElement.style.left = '';
-            draggedElement.style.top = '';
-            draggedElement.style.zIndex = '';
-            draggedElement.classList.remove('dragging');
-            
-            // Remove all highlights
-            targetShapes.forEach(target => target.classList.remove('highlight'));
-            
-            // Check for match
-            if (matchedTarget) {
-                matchShape(draggedElement, matchedTarget);
+            if (!matched) {
+                // Return to original position
+                draggedElement.style.position = 'relative';
+                draggedElement.style.left = '';
+                draggedElement.style.top = '';
             }
             
-            isDragging = false;
+            draggedElement.classList.remove('dragging');
+            draggedElement.style.pointerEvents = '';
             draggedElement = null;
         }
-
-        function matchShape(draggedShape, targetShape) {
-            // Hide the dragged shape
-            draggedShape.style.display = 'none';
-            
-            // Mark target as matched
-            targetShape.classList.add('matched');
-            
-            // Create visual feedback
-            targetShape.style.transform = 'scale(1.2)';
-            setTimeout(() => {
-                targetShape.style.transform = 'scale(1)';
-            }, 300);
-            
-            matches++;
-            
-            // Check if all shapes are matched (back to 4 shapes)
-            if (matches === 4) {
-                setTimeout(() => {
-                    document.querySelector('.success-message').style.display = 'block';
-                }, 500);
-            }
-        }
-
+        
         function resetGame() {
-            // Reset matches
-            matches = 0;
+            matchedShapes.clear();
             
-            // Show all draggable shapes
-            const draggableShapes = document.querySelectorAll('.shape[draggable="true"]');
-            draggableShapes.forEach(shape => {
-                shape.style.display = 'block';
+            // Reset all targets
+            const targets = document.querySelectorAll('.target-shape');
+            targets.forEach(target => {
+                target.classList.remove('matched', 'highlight');
+            });
+            
+            // Reset all draggable shapes
+            const shapes = document.querySelectorAll('.draggable-shape');
+            shapes.forEach(shape => {
+                shape.style.display = '';
                 shape.style.position = 'relative';
                 shape.style.left = '';
                 shape.style.top = '';
-                shape.style.zIndex = '';
                 shape.classList.remove('dragging');
-            });
-            
-            // Reset target shapes
-            const targetShapes = document.querySelectorAll('.target-shape');
-            targetShapes.forEach(target => {
-                target.classList.remove('matched', 'highlight');
-                target.style.transform = '';
+                shape.style.pointerEvents = '';
             });
             
             // Hide success message
-            document.querySelector('.success-message').style.display = 'none';
-            
-            // Reset dragging state
-            isDragging = false;
-            draggedElement = null;
+            document.getElementById('successMessage').classList.remove('show');
         }
-
-        // Initialize the game when the page loads
+        
+        // Initialize the game when page loads
         document.addEventListener('DOMContentLoaded', initGame);
     </script>
 </body>
