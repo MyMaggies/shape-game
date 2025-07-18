@@ -1,5 +1,9 @@
-.star {
-                font-size: 50px;
+.diamond {
+                width: 42px;
+                height: 42px;
+            }            .diamond::before {
+                width: 42px;
+                height: 42px;
             }<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -103,27 +107,38 @@
             border-radius: 50%;
         }
 
-        .star {
+        .diamond {
+            width: 56px;
+            height: 56px;
+            background: #d3d3d3;
             position: relative;
-            width: 80px;
-            height: 80px;
-            background: transparent;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 70px;
         }
 
-        /* Target star should be grey */
-        .target-shape.star {
-            color: #d3d3d3;
+        .diamond::before {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: inherit;
+            transform: rotate(45deg);
         }
 
-        /* Draggable stars inherit their color class */
-        .red.star { color: #FF4444; }
-        .pink.star { color: #FF69B4; }
-        .blue.star { color: #4169E1; }
-        .green.star { color: #32CD32; }
+        .diamond.dragging::before {
+            transform: rotate(45deg);
+        }
+
+        /* Target diamond should be grey */
+        .target-shape.diamond::before {
+            background: #d3d3d3;
+        }
+
+        /* Draggable diamonds inherit their color class */
+        .red.diamond::before { background: #FF4444; }
+        .pink.diamond::before { background: #FF69B4; }
+        .blue.diamond::before { background: #4169E1; }
+        .green.diamond::before { background: #32CD32; }
 
         .square {
             border-radius: 8px;
@@ -259,7 +274,7 @@
         
         <div class="target-area">
             <div class="target-shape circle" data-shape="circle"></div>
-            <div class="target-shape star" data-shape="star">★</div>
+            <div class="target-shape diamond" data-shape="diamond"></div>
             <div class="target-shape triangle" data-shape="triangle"></div>
             <div class="target-shape square sharp-square" data-shape="square2"></div>
         </div>
@@ -267,7 +282,7 @@
         <div class="source-area">
             <div class="shape triangle green" data-shape="triangle" draggable="true"></div>
             <div class="shape circle red" data-shape="circle" draggable="true"></div>
-            <div class="shape star pink" data-shape="star" draggable="true">★</div>
+            <div class="shape diamond pink" data-shape="diamond" draggable="true"></div>
             <div class="shape square sharp-square blue" data-shape="square2" draggable="true"></div>
         </div>
         
@@ -277,7 +292,7 @@
         </div>
     </div>
 
-    <div class="version">Ver 18</div>
+    <div class="version">Ver 22</div>
 
     <script>
         let draggedElement = null;
