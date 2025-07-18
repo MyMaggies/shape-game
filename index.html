@@ -1,4 +1,6 @@
-<!DOCTYPE html>
+.star {
+                font-size: 50px;
+            }<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -100,6 +102,28 @@
         .circle {
             border-radius: 50%;
         }
+
+        .star {
+            position: relative;
+            width: 80px;
+            height: 80px;
+            background: transparent;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 70px;
+        }
+
+        /* Target star should be grey */
+        .target-shape.star {
+            color: #d3d3d3;
+        }
+
+        /* Draggable stars inherit their color class */
+        .red.star { color: #FF4444; }
+        .pink.star { color: #FF69B4; }
+        .blue.star { color: #4169E1; }
+        .green.star { color: #32CD32; }
 
         .square {
             border-radius: 8px;
@@ -235,7 +259,7 @@
         
         <div class="target-area">
             <div class="target-shape circle" data-shape="circle"></div>
-            <div class="target-shape square" data-shape="square"></div>
+            <div class="target-shape star" data-shape="star">★</div>
             <div class="target-shape triangle" data-shape="triangle"></div>
             <div class="target-shape square sharp-square" data-shape="square2"></div>
         </div>
@@ -243,7 +267,7 @@
         <div class="source-area">
             <div class="shape triangle green" data-shape="triangle" draggable="true"></div>
             <div class="shape circle red" data-shape="circle" draggable="true"></div>
-            <div class="shape square pink" data-shape="square" draggable="true"></div>
+            <div class="shape star pink" data-shape="star" draggable="true">★</div>
             <div class="shape square sharp-square blue" data-shape="square2" draggable="true"></div>
         </div>
         
@@ -253,7 +277,7 @@
         </div>
     </div>
 
-    <div class="version">Ver 14</div>
+    <div class="version">Ver 18</div>
 
     <script>
         let draggedElement = null;
