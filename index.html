@@ -54,10 +54,11 @@
             padding: 20px;
             margin-bottom: 20px;
             display: flex;
-            justify-content: space-around;
+            justify-content: space-evenly;
             align-items: center;
             flex-wrap: wrap;
             min-height: 120px;
+            gap: 10px;
         }
         
         .shapes-area {
@@ -65,19 +66,21 @@
             border-radius: 15px;
             padding: 20px;
             display: flex;
-            justify-content: space-around;
+            justify-content: space-evenly;
             align-items: center;
             flex-wrap: wrap;
             min-height: 120px;
+            gap: 10px;
         }
         
         .target-shape {
             width: 80px;
             height: 80px;
             background: #999;
-            margin: 10px;
+            margin: 5px;
             transition: all 0.3s ease;
             border-radius: 0;
+            flex-shrink: 0;
         }
         
         .target-shape.circle {
@@ -122,13 +125,14 @@
         .draggable-shape {
             width: 80px;
             height: 80px;
-            margin: 10px;
+            margin: 5px;
             cursor: grab;
             transition: all 0.3s ease;
             user-select: none;
             touch-action: none;
             position: relative;
             z-index: 10;
+            flex-shrink: 0;
         }
         
         .draggable-shape:hover {
@@ -215,10 +219,16 @@
                 font-size: 1.1em;
             }
             
+            .targets-area, .shapes-area {
+                padding: 15px 10px;
+                gap: 5px;
+            }
+            
             .target-shape, .draggable-shape {
                 width: 60px;
                 height: 60px;
-                margin: 5px;
+                margin: 2px;
+                flex-shrink: 0;
             }
             
             .target-shape.triangle {
@@ -234,14 +244,15 @@
             }
             
             .game-container {
-                padding: 20px;
+                padding: 15px;
+                max-width: 95%;
             }
         }
     </style>
 </head>
 <body>
     <h1 class="title">Match the Shapes!</h1>
-    <p class="instructions">Drag each coloured shape to match the grey shape</p>
+    <p class="instructions">Drag each colored shape to match the grey shape</p>
     
     <div class="game-container">
         <div class="targets-area">
@@ -307,8 +318,9 @@
             
             draggedElement.classList.add('dragging');
             draggedElement.style.position = 'fixed';
-            draggedElement.style.left = (clientX - offset.x) + 'px';
-            draggedElement.style.top = (clientY - offset.y) + 'px';
+            draggedElement.style.left = '0px';
+            draggedElement.style.top = '0px';
+            draggedElement.style.transform = `translate(${clientX - offset.x}px, ${clientY - offset.y}px)`;
             draggedElement.style.pointerEvents = 'none';
         }
         
@@ -320,26 +332,34 @@
             const clientX = e.type === 'mousemove' ? e.clientX : e.touches[0].clientX;
             const clientY = e.type === 'mousemove' ? e.clientY : e.touches[0].clientY;
             
-            draggedElement.style.left = (clientX - offset.x) + 'px';
-            draggedElement.style.top = (clientY - offset.y) + 'px';
+            // Use transform for better performance on mobile
+            const x = clientX - offset.x;
+            const y = clientY - offset.y;
+            draggedElement.style.transform = `translate(${x}px, ${y}px)`;
             
-            // Check for hover over targets
-            const targets = document.querySelectorAll('.target-shape');
-            targets.forEach(target => {
-                target.classList.remove('highlight');
-                
-                if (!matchedShapes.has(target.dataset.shape)) {
-                    const rect = target.getBoundingClientRect();
-                    const distance = Math.sqrt(
-                        Math.pow(clientX - (rect.left + rect.width / 2), 2) + 
-                        Math.pow(clientY - (rect.top + rect.height / 2), 2)
-                    );
-                    
-                    if (distance < 50 && target.dataset.shape === draggedElement.dataset.shape) {
-                        target.classList.add('highlight');
-                    }
-                }
-            });
+            // Throttle target checking for better performance
+            if (!draggedElement.checkTimer) {
+                draggedElement.checkTimer = setTimeout(() => {
+                    // Check for hover over targets
+                    const targets = document.querySelectorAll('.target-shape');
+                    targets.forEach(target => {
+                        target.classList.remove('highlight');
+                        
+                        if (!matchedShapes.has(target.dataset.shape)) {
+                            const rect = target.getBoundingClientRect();
+                            const distance = Math.sqrt(
+                                Math.pow(clientX - (rect.left + rect.width / 2), 2) + 
+                                Math.pow(clientY - (rect.top + rect.height / 2), 2)
+                            );
+                            
+                            if (distance < 50 && target.dataset.shape === draggedElement.dataset.shape) {
+                                target.classList.add('highlight');
+                            }
+                        }
+                    });
+                    draggedElement.checkTimer = null;
+                }, 16); // ~60fps
+            }
         }
         
         function handleEnd(e) {
@@ -384,10 +404,15 @@
                 draggedElement.style.position = 'relative';
                 draggedElement.style.left = '';
                 draggedElement.style.top = '';
+                draggedElement.style.transform = '';
             }
             
             draggedElement.classList.remove('dragging');
             draggedElement.style.pointerEvents = '';
+            if (draggedElement.checkTimer) {
+                clearTimeout(draggedElement.checkTimer);
+                draggedElement.checkTimer = null;
+            }
             draggedElement = null;
         }
         
@@ -407,8 +432,13 @@
                 shape.style.position = 'relative';
                 shape.style.left = '';
                 shape.style.top = '';
+                shape.style.transform = '';
                 shape.classList.remove('dragging');
                 shape.style.pointerEvents = '';
+                if (shape.checkTimer) {
+                    clearTimeout(shape.checkTimer);
+                    shape.checkTimer = null;
+                }
             });
             
             // Hide success message
